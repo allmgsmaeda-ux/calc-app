@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>補助金計算</title>
+
+<style>
+body{font-family:sans-serif;margin:0;padding:10px}
+table{border-collapse:collapse;width:100%;max-width:600px;margin:auto}
+td{border:1px solid #999;padding:6px;font-size:14px;word-break:break-word}
+input{width:100%;box-sizing:border-box;font-size:16px}
+.yellow{background:#fff3a3}
+.result{font-weight:bold}
+</style>
+</head>
+<body>
+
+<h2 style="text-align:center;">補助金計算</h2>
+
+<table>
+<tr>
+<td>①販売金額（ソフトウェア）</td>
+<td class="yellow"><input id="C4" type="number"></td>
+<td>税込</td><td id="D4"></td>
+</tr>
+
+<tr>
+<td>②販売金額（POSハード）</td>
+<td class="yellow"><input id="C5" type="number"></td>
+<td>税込</td><td id="D5"></td>
+</tr>
+
+<tr>
+<td>③販売金額（PC）</td>
+<td class="yellow"><input id="C6" type="number"></td>
+<td>税込</td><td id="D6"></td>
+</tr>
+
+<tr class="result">
+<td>④補助金額（税別）</td>
+<td id="G5"></td>
+</tr>
+
+<tr class="result">
+<td>⑤差額（税込合計－補助金）</td>
+<td id="G6"></td>
+</tr>
+
+<tr><td colspan="4" style="background:#eee">▼ 利益計算エリア</td></tr>
+
+<tr>
+<td>⑥ＡＬＬ商材費用（原価）</td>
+<td class="yellow"><input id="C30" type="number"></td>
+<td>税込</td><td id="D30"></td>
+</tr>
+
+<tr class="result">
+<td>⑦販売店様払出（税込）</td>
+<td id="G30"></td>
+</tr>
+
+<tr class="result">
+<td>⑧販売店様利益（税込）</td>
+<td id="G31"></td>
+</tr>
+</table>
+
+<script>
+function v(id){return Number(document.getElementById(id).value)||0}
+function fmt(n){return Math.round(n).toLocaleString()}
+function s(id,val){
+  const el=document.getElementById(id);
+  el.textContent=fmt(val);
+  el.style.color=val<0?"red":"blue";
+}
+
+function calc(){
+
+let C4=v("C4"), C5=v("C5"), C6=v("C6"), C30=v("C30");
+
+let D4=C4*1.1;
+let D5=C5*1.1;
+let D6=C6*1.1;
+let D30=C30*1.1;
+
+// 補助金計算
+let G4=C4;
+let G5_calc=(G4>=666667)?G4-666667:G4;
+let I5=(G5_calc>=666667)?G5_calc/3*2:G5_calc*0.75;
+let G6_calc=G4-G5_calc;
+let I6=G6_calc*0.75;
+let I7=Math.min(I5+I6,3500000);
+
+let optBonus=(C5>=400000)?200000:C5*0.5;
+let svcBonus=(C6>=200000)?100000:C6*0.5;
+
+let subsidy=I7+optBonus+svcBonus;
+
+let diff=(D4+D5+D6)-subsidy;
+let payout=(D4+D5+D6)-D30;
+let profit=payout-diff;
+
+s("D4",D4); s("D5",D5); s("D6",D6);
+s("G5",subsidy);
+s("G6",diff);
+s("D30",D30);
+s("G30",payout);
+s("G31",profit);
+}
+
+document.querySelectorAll("input").forEach(i=>{
+  i.addEventListener("input",calc);
+});
+
+window.onload=calc;
+</script>
+
+</body>
+</html>
