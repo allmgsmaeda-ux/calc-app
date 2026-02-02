@@ -1,119 +1,130 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>補助金計算</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持続化補助金 精密計算ツール</title>
+    <style>
+        :root { --primary: #005bac; --bg: #f4f7f9; --green: #28a745; --red: #d9534f; --orange: #e67e22; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 550px; }
+        h1 { font-size: 1.3rem; color: var(--primary); text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        
+        .type-selector { margin-bottom: 25px; padding: 15px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; }
+        select { width: 100%; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; cursor: pointer; }
 
-<style>
-body{font-family:sans-serif;margin:0;padding:10px}
-table{border-collapse:collapse;width:100%;max-width:600px;margin:auto}
-td{border:1px solid #999;padding:6px;font-size:14px;word-break:break-word}
-input{width:100%;box-sizing:border-box;font-size:16px}
-.yellow{background:#fff3a3}
-.result{font-weight:bold}
-</style>
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 10px; background: #fff; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem; color: #444; }
+        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1rem; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .auto-calc { font-size: 0.9rem; color: #666; background: #f9f9f9; padding: 8px 12px; border-radius: 5px; display: flex; justify-content: space-between; }
+        .auto-calc strong { color: var(--primary); }
+        
+        /* ⑤～⑦を囲む枠 */
+        .final-results-frame { 
+            margin-top: 30px; 
+            padding: 20px; 
+            border: 2px solid #333; /* しっかりした太めの枠 */
+            border-radius: 12px; 
+            background: #ffffff; 
+        }
+        
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; }
+        .res-row:last-child { margin-bottom: 0; }
+        
+        .text-green { color: var(--green); }
+        .text-blue { color: var(--primary); }
+        .text-red { color: var(--red); }
+        .cap-warning { font-size: 0.85rem; color: var(--orange); font-weight: bold; margin-bottom: 10px; text-align: right; display: none; }
+        .caption { font-size: 0.75rem; color: #999; margin-top: 15px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
 </head>
 <body>
 
-<h2 style="text-align:center;">補助金計算</h2>
+<div class="card">
+    <h1>持続化補助金 計算ツール</h1>
+    
+    <div class="type-selector">
+        <label>申請枠・加点の選択</label>
+        <select id="rateSelect" onchange="runCalc()">
+            <option value="0.6666666667">通常申請 (補助率 2/3)</option>
+            <option value="0.75">赤字・賃金引上げ加点等 (補助率 3/4)</option>
+        </select>
+    </div>
 
-<table>
-<tr>
-<td>①販売金額（ソフトウェア）</td>
-<td class="yellow"><input id="C4" type="number"></td>
-<td>税込</td><td id="D4"></td>
-</tr>
+    <div class="section">
+        <label>① ウェブサイト関連費 (入力)</label>
+        <input type="number" id="webExp" placeholder="0" oninput="runCalc()">
+        <div class="auto-calc">
+            <span>③ ウェブ関連 交付申請額 (自動):</span>
+            <strong id="res3">0 円</strong>
+        </div>
+    </div>
 
-<tr>
-<td>②販売金額（POSハード）</td>
-<td class="yellow"><input id="C5" type="number"></td>
-<td>税込</td><td id="D5"></td>
-</tr>
+    <div class="section">
+        <label>② ウェブサイト関連費以外 (入力)</label>
+        <input type="number" id="otherExp" placeholder="0" oninput="runCalc()">
+        <div class="auto-calc">
+            <span>④ ウェブ以外 交付申請額 (自動):</span>
+            <strong id="res4">0 円</strong>
+        </div>
+    </div>
 
-<tr>
-<td>③販売金額（PC）</td>
-<td class="yellow"><input id="C6" type="number"></td>
-<td>税込</td><td id="D6"></td>
-</tr>
+    <div class="final-results-frame">
+        <div class="res-row text-green">
+            <span>⑤ 補助対象経費合計</span>
+            <span id="res5">0 円</span>
+        </div>
+        <div class="res-row text-blue">
+            <span>⑥ 補助金交付申請額 合計</span>
+            <span id="res6">0 円</span>
+        </div>
+        <div id="capWarning" class="cap-warning">⚠️ 補助上限額 2,000,000円 が適用されました</div>
+        <div class="res-row text-red">
+            <span>⑦ 手出し額</span>
+            <span id="res7">0 円</span>
+        </div>
+    </div>
 
-<tr class="result">
-<td>④補助金額（税別）</td>
-<td id="G5"></td>
-</tr>
-
-<tr class="result">
-<td>⑤差額（税込合計－補助金）</td>
-<td id="G6"></td>
-</tr>
-
-<tr><td colspan="4" style="background:#eee">▼ 利益計算エリア</td></tr>
-
-<tr>
-<td>⑥ＡＬＬ商材費用（原価）</td>
-<td class="yellow"><input id="C30" type="number"></td>
-<td>税込</td><td id="D30"></td>
-</tr>
-
-<tr class="result">
-<td>⑦販売店様払出（税込）</td>
-<td id="G30"></td>
-</tr>
-
-<tr class="result">
-<td>⑧販売店様利益（税込）</td>
-<td id="G31"></td>
-</tr>
-</table>
+    <div class="caption">
+        ※③の算出：1.②×1/4(最大50万) 2.①×補助率 3.④×1/3 の最小値を採用。<br>
+        ※⑥の上限は 2,000,000円 です。
+    </div>
+</div>
 
 <script>
-function v(id){return Number(document.getElementById(id).value)||0}
-function fmt(n){return Math.round(n).toLocaleString()}
-function s(id,val){
-  const el=document.getElementById(id);
-  el.textContent=fmt(val);
-  el.style.color=val<0?"red":"blue";
+function runCalc() {
+    const webTotal = parseFloat(document.getElementById('webExp').value) || 0; 
+    const otherTotal = parseFloat(document.getElementById('otherExp').value) || 0; 
+    const rate = parseFloat(document.getElementById('rateSelect').value);
+
+    const res4 = Math.floor(otherTotal * rate);
+
+    let val3_1 = otherTotal * 0.25;
+    if (val3_1 > 500000) val3_1 = 500000;
+    const val3_2 = webTotal * rate;
+    const val3_3 = res4 * (1/3);
+    const res3 = Math.floor(Math.min(val3_1, val3_2, val3_3));
+
+    const res5 = webTotal + otherTotal;
+
+    let res6 = res3 + res4;
+    const cap = 2000000;
+    if (res6 > cap) {
+        res6 = cap;
+        document.getElementById('capWarning').style.display = 'block';
+    } else {
+        document.getElementById('capWarning').style.display = 'none';
+    }
+
+    const res7 = res5 - res6;
+
+    document.getElementById('res3').innerText = res3.toLocaleString() + " 円";
+    document.getElementById('res4').innerText = res4.toLocaleString() + " 円";
+    document.getElementById('res5').innerText = res5.toLocaleString() + " 円";
+    document.getElementById('res6').innerText = res6.toLocaleString() + " 円";
+    document.getElementById('res7').innerText = res7.toLocaleString() + " 円";
 }
-
-function calc(){
-
-let C4=v("C4"), C5=v("C5"), C6=v("C6"), C30=v("C30");
-
-let D4=C4*1.1;
-let D5=C5*1.1;
-let D6=C6*1.1;
-let D30=C30*1.1;
-
-// 補助金計算
-let G4=C4;
-let G5_calc=(G4>=666667)?G4-666667:G4;
-let I5=(G5_calc>=666667)?G5_calc/3*2:G5_calc*0.75;
-let G6_calc=G4-G5_calc;
-let I6=G6_calc*0.75;
-let I7=Math.min(I5+I6,3500000);
-
-let optBonus=(C5>=400000)?200000:C5*0.5;
-let svcBonus=(C6>=200000)?100000:C6*0.5;
-
-let subsidy=I7+optBonus+svcBonus;
-
-let diff=(D4+D5+D6)-subsidy;
-let payout=(D4+D5+D6)-D30;
-let profit=payout-diff;
-
-s("D4",D4); s("D5",D5); s("D6",D6);
-s("G5",subsidy);
-s("G6",diff);
-s("D30",D30);
-s("G30",payout);
-s("G31",profit);
-}
-
-document.querySelectorAll("input").forEach(i=>{
-  i.addEventListener("input",calc);
-});
-
-window.onload=calc;
 </script>
 
 </body>
