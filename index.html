@@ -2,27 +2,38 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>補助金シミュレーター統合版（自動保存機能付）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>補助金シミュレーター統合版</title>
 <style>
     :root { --primary: #005bac; --bg: #f4f7f9; --green: #28a745; --red: #d9534f; --gray: #888; --blue: #007bff; }
-    body { font-family: sans-serif; background: var(--bg); padding: 20px; color: #333; }
-    .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 550px; margin: auto; }
-    h2 { font-size: 1.2rem; color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 25px; }
     
-    .section-frame { border: 1px solid #ddd; border-radius: 12px; padding: 18px; margin-bottom: 20px; background: #fff; }
-    .result-frame { border: 2px solid #444; border-radius: 12px; padding: 18px; margin-bottom: 20px; background: #fff; }
-    .profit-frame { border: 2px solid #ddd; border-radius: 12px; padding: 18px; margin-bottom: 20px; background: #fdfdfd; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: #333; line-height: 1.5; }
     
-    .form-group { margin-bottom: 15px; }
+    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 550px; margin: 0 auto; box-sizing: border-box; }
+    
+    h2 { font-size: 1.1rem; color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; }
+    
+    /* セクション枠 */
+    .section-frame { border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fff; }
+    .result-frame { border: 2px solid #444; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fff; }
+    .profit-frame { border: 2px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fdfdfd; }
+    
+    .form-group { margin-bottom: 12px; }
     .form-group:last-child { margin-bottom: 0; }
-    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
-    input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1rem; box-sizing: border-box; }
-    input:focus { border-color: var(--primary); outline: none; }
     
-    .tax-label { font-size: 0.85rem; color: var(--gray); margin-top: 4px; text-align: right; }
-    .res-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.1rem; font-weight: bold; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
+    
+    /* 入力欄：スマホでズームしないよう16px以上に設定 */
+    input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box; -webkit-appearance: none; }
+    input:focus { border-color: var(--primary); outline: none; background: #f0f7ff; }
+    
+    .tax-label { font-size: 0.8rem; color: var(--gray); margin-top: 4px; text-align: right; }
+    
+    /* 結果表示行 */
+    .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 1rem; font-weight: bold; }
     .res-row:last-child { margin-bottom: 0; }
+    
+    .val-text { font-size: 1.1rem; }
     
     .text-black { color: #000; }
     .text-blue { color: var(--blue); }
@@ -30,59 +41,69 @@
     .text-red { color: var(--red); }
     .text-primary { color: var(--primary); }
 
-    .type-selector { margin-bottom: 20px; padding: 15px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; }
-    select { width: 100%; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc; }
-    .spacer { height: 60px; border-bottom: 1px dashed #ccc; margin-bottom: 60px; }
+    .type-selector { margin-bottom: 15px; padding: 12px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; }
+    select { width: 100%; padding: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+
+    .spacer { height: 40px; border-bottom: 1px dashed #ccc; margin-bottom: 40px; }
+
+    /* モバイル向け微調整 */
+    @media (max-width: 480px) {
+        body { padding: 10px; }
+        .container { padding: 15px; }
+        h2 { font-size: 1rem; }
+        .res-row { font-size: 0.9rem; }
+        .val-text { font-size: 1rem; }
+    }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>IT導入補助金・利益シミュレーション</h2>
+    <h2>IT導入補助金・利益シミュレーター</h2>
 
     <div class="section-frame">
         <div class="form-group">
             <label>① ソフトウェア販売金額（税別）</label>
-            <input id="C4" type="number" placeholder="0" oninput="saveAndCalc()">
-            <div class="tax-label">ソフトウェア販売税込金額：<span id="D4">0</span> 円</div>
+            <input id="C4" type="number" pattern="\d*" placeholder="金額を入力" oninput="calcTop()">
+            <div class="tax-label">ソフトウェア販売税込：<span id="D4">0</span> 円</div>
         </div>
         <div class="form-group">
             <label>② POSハード販売金額（税別）</label>
-            <input id="C5" type="number" placeholder="0" oninput="saveAndCalc()">
-            <div class="tax-label">POSハード販売税込金額：<span id="D5">0</span> 円</div>
+            <input id="C5" type="number" pattern="\d*" placeholder="金額を入力" oninput="calcTop()">
+            <div class="tax-label">POSハード販売税込：<span id="D5">0</span> 円</div>
         </div>
         <div class="form-group">
             <label>③ PC販売金額（税別）</label>
-            <input id="C6" type="number" placeholder="0" oninput="saveAndCalc()">
-            <div class="tax-label">PC販売税込金額：<span id="D6">0</span> 円</div>
+            <input id="C6" type="number" pattern="\d*" placeholder="金額を入力" oninput="calcTop()">
+            <div class="tax-label">PC販売税込：<span id="D6">0</span> 円</div>
         </div>
     </div>
 
     <div class="result-frame">
-        <div class="form-group" style="margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom: 15px;">
             <label>⑥ ALL商材原価費用（税別）</label>
-            <input id="C30" type="number" placeholder="0" oninput="saveAndCalc()">
-            <div class="tax-label">ALL商材税込原価費用：<span id="D30">0</span> 円</div>
+            <input id="C30" type="number" pattern="\d*" placeholder="原価を入力" oninput="calcTop()">
+            <div class="tax-label">ALL商材税込原価：<span id="D30">0</span> 円</div>
         </div>
         
         <div class="res-row text-black">
             <span>④ 目安補助金税込額（自動）</span>
-            <span id="G5">0 円</span>
+            <span class="val-text" id="G5">0 円</span>
         </div>
         <div class="res-row text-red">
-            <span>⑤ 差額（支払総額－補助金）</span>
-            <span id="G6">0 円</span>
+            <span>⑤ 差額（総額－補助金）</span>
+            <span class="val-text" id="G6">0 円</span>
         </div>
     </div>
 
     <div class="profit-frame">
         <div class="res-row text-green">
             <span>⑦ 販売店様払出税込額</span>
-            <span id="G30">0 円</span>
+            <span class="val-text" id="G30">0 円</span>
         </div>
-        <div class="res-row text-red" style="font-size: 1.3rem;">
+        <div class="res-row text-red">
             <span>⑧ 販売店様税込利益</span>
-            <span id="G31">0 円</span>
+            <span class="val-text" style="font-size:1.3rem;" id="G31">0 円</span>
         </div>
     </div>
 </div>
@@ -94,7 +115,7 @@
     
     <div class="type-selector">
         <label>申請枠・加点の選択</label>
-        <select id="rateSelect" onchange="saveAndCalc()">
+        <select id="rateSelect" onchange="runCalcBottom()">
             <option value="0.6666666667">通常申請 (補助率 2/3)</option>
             <option value="0.75">赤字・賃金引上げ加点等 (補助率 3/4)</option>
         </select>
@@ -102,28 +123,28 @@
 
     <div class="section-frame">
         <label>① ウェブサイト関連費 (入力)</label>
-        <input type="number" id="webExp" placeholder="0" oninput="saveAndCalc()">
+        <input type="number" id="webExp" pattern="\d*" placeholder="金額を入力" oninput="runCalcBottom()">
         <div class="tax-label" style="text-align:left;">③ ウェブ関連 交付申請額: <strong class="text-primary" id="res3">0</strong> 円</div>
     </div>
 
     <div class="section-frame">
         <label>② ウェブサイト関連費以外 (入力)</label>
-        <input type="number" id="otherExp" placeholder="0" oninput="saveAndCalc()">
+        <input type="number" id="otherExp" pattern="\d*" placeholder="金額を入力" oninput="runCalcBottom()">
         <div class="tax-label" style="text-align:left;">④ ウェブ以外 交付申請額: <strong class="text-primary" id="res4">0</strong> 円</div>
     </div>
 
     <div class="result-frame">
         <div class="res-row text-green">
             <span>⑤ 補助対象経費合計</span>
-            <span id="res5">0 円</span>
+            <span class="val-text" id="res5">0 円</span>
         </div>
         <div class="res-row text-primary">
             <span>⑥ 補助金交付申請額 合計</span>
-            <span id="res6">0 円</span>
+            <span class="val-text" id="res6">0 円</span>
         </div>
         <div class="res-row text-red">
             <span>⑦ 手出し額</span>
-            <span id="res7">0 円</span>
+            <span class="val-text" id="res7">0 円</span>
         </div>
     </div>
 </div>
@@ -131,68 +152,20 @@
 <script>
 const fmt = (n) => Math.round(n).toLocaleString();
 
-// --- ローカルストレージ関連の関数 ---
-
-// 保存
-function saveAndCalc() {
-    // 1. 各入力を計算
-    calcTop();
-    runCalcBottom();
-
-    // 2. データをまとめて保存
-    const formData = {
-        C4: document.getElementById("C4").value,
-        C5: document.getElementById("C5").value,
-        C6: document.getElementById("C6").value,
-        C30: document.getElementById("C30").value,
-        rateSelect: document.getElementById("rateSelect").value,
-        webExp: document.getElementById("webExp").value,
-        otherExp: document.getElementById("otherExp").value
-    };
-    localStorage.setItem('hojokin_draft', JSON.stringify(formData));
-}
-
-// 読み込み（ページ起動時に実行）
-window.onload = function() {
-    const savedData = localStorage.getItem('hojokin_draft');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        // 各要素に値を戻す
-        document.getElementById("C4").value = data.C4 || "";
-        document.getElementById("C5").value = data.C5 || "";
-        document.getElementById("C6").value = data.C6 || "";
-        document.getElementById("C30").value = data.C30 || "";
-        document.getElementById("rateSelect").value = data.rateSelect || "0.6666666667";
-        document.getElementById("webExp").value = data.webExp || "";
-        document.getElementById("otherExp").value = data.otherExp || "";
-        
-        // 値を戻した後に再計算
-        calcTop();
-        runCalcBottom();
-    }
-};
-
-// --- 元々の計算ロジック ---
-
 function calcTop(){
     const C4=Number(document.getElementById("C4").value)||0;
     const C5=Number(document.getElementById("C5").value)||0;
     const C6=Number(document.getElementById("C6").value)||0;
     const C30=Number(document.getElementById("C30").value)||0;
-
     const D4=C4*1.1; const D5=C5*1.1; const D6=C6*1.1; const D30=C30*1.1;
 
-    let G4=C4;
-    let G5_calc=(G4>=666667)?G4-666667:G4;
+    let G5_calc=(C4>=666667)?C4-666667:C4;
     let I5=(G5_calc>=666667)?G5_calc/3*2:G5_calc*0.75;
-    let G6_calc=G4-G5_calc;
-    let I6=G6_calc*0.75;
+    let I6=(C4-G5_calc)*0.75;
     let I7=Math.min(I5+I6,3500000);
-
     let optBonus=(C5>=400000)?200000:C5*0.5;
     let svcBonus=(C6>=200000)?100000:C6*0.5;
     const subsidy=I7+optBonus+svcBonus;
-
     const diff=(D4+D5+D6)-subsidy;
     const payout=(D4+D5+D6)-D30;
     const profit=payout-diff;
@@ -201,7 +174,6 @@ function calcTop(){
     document.getElementById("D5").textContent=fmt(D5);
     document.getElementById("D6").textContent=fmt(D6);
     document.getElementById("D30").textContent=fmt(D30);
-    
     document.getElementById("G5").textContent=fmt(subsidy)+" 円";
     document.getElementById("G6").textContent=fmt(diff)+" 円";
     document.getElementById("G30").textContent=fmt(payout)+" 円";
@@ -212,15 +184,12 @@ function runCalcBottom() {
     const webTotal = parseFloat(document.getElementById('webExp').value) || 0; 
     const otherTotal = parseFloat(document.getElementById('otherExp').value) || 0; 
     const rate = parseFloat(document.getElementById('rateSelect').value);
-
     const res4 = Math.floor(otherTotal * rate);
     let val3_1 = Math.min(otherTotal * 0.25, 500000);
     const res3 = Math.floor(Math.min(val3_1, webTotal * rate, res4 / 3));
-
     const res5 = webTotal + otherTotal;
     const res6 = Math.min(res3 + res4, 2000000);
     const res7 = res5 - res6;
-
     document.getElementById('res3').innerText = fmt(res3);
     document.getElementById('res4').innerText = fmt(res4);
     document.getElementById('res5').innerText = fmt(res5) + " 円";
