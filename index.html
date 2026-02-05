@@ -9,30 +9,26 @@
     
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: #333; line-height: 1.5; }
     
-    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 550px; margin: 0 auto; box-sizing: border-box; }
+    .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 550px; margin: 0 auto 20px auto; box-sizing: border-box; position: relative; }
     
     h2 { font-size: 1.1rem; color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; }
     
-    /* セクション枠 */
+    /* リセットボタンのスタイル */
+    .reset-btn-container { text-align: right; margin-bottom: 10px; max-width: 550px; margin: 0 auto 10px auto; }
+    .reset-btn { background-color: #f8f9fa; border: 1px solid #ccc; color: #333; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+    .reset-btn:active { background-color: #e2e6ea; }
+
     .section-frame { border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fff; }
     .result-frame { border: 2px solid #444; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fff; }
     .profit-frame { border: 2px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #fdfdfd; }
     
     .form-group { margin-bottom: 12px; }
-    .form-group:last-child { margin-bottom: 0; }
-    
     label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
-    
-    /* 入力欄：スマホでズームしないよう16px以上に設定 */
     input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box; -webkit-appearance: none; }
     input:focus { border-color: var(--primary); outline: none; background: #f0f7ff; }
     
     .tax-label { font-size: 0.8rem; color: var(--gray); margin-top: 4px; text-align: right; }
-    
-    /* 結果表示行 */
     .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 1rem; font-weight: bold; }
-    .res-row:last-child { margin-bottom: 0; }
-    
     .val-text { font-size: 1.1rem; }
     
     .text-black { color: #000; }
@@ -46,7 +42,6 @@
 
     .spacer { height: 40px; border-bottom: 1px dashed #ccc; margin-bottom: 40px; }
 
-    /* モバイル向け微調整 */
     @media (max-width: 480px) {
         body { padding: 10px; }
         .container { padding: 15px; }
@@ -57,6 +52,10 @@
 </style>
 </head>
 <body>
+
+<div class="reset-btn-container">
+    <button class="reset-btn" onclick="resetAll()">🔄 全ての入力をリセット</button>
+</div>
 
 <div class="container">
     <h2>IT導入補助金・利益シミュレーター</h2>
@@ -151,6 +150,20 @@
 
 <script>
 const fmt = (n) => Math.round(n).toLocaleString();
+
+// クリア機能
+function resetAll() {
+    // すべてのinputを取得して値を空にする
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => input.value = "");
+    
+    // セレクトボックスを初期値に戻す
+    document.getElementById('rateSelect').selectedIndex = 0;
+    
+    // 再計算を実行して表示をリセット
+    calcTop();
+    runCalcBottom();
+}
 
 function calcTop(){
     const C4=Number(document.getElementById("C4").value)||0;
