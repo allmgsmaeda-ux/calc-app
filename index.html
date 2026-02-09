@@ -139,23 +139,41 @@ function savePageImage() {
     const oldText = btn.innerText;
     btn.innerText = "作成中...";
 
+    // 案件名とファイル名の設定
     const jobName = document.getElementById("jobName").value || "補助金シミュレーション";
     const now = new Date();
     const dateStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
-    const fileName = `${jobName}_${dateStr}.png`;
-
-    // 修正ポイント：スクロール位置に関係なく全体を撮る設定
-    const target = document.querySelector("#capture-area");
     
+    const target = document.querySelector("#capture-area");
+
     html2canvas(target, {
-        scale: 2,           // 画質を2倍に（綺麗になります）
-        useCORS: true,      // 外部画像があってもOKに
+        scale: 2,
+        useCORS: true,
         backgroundColor: "#f4f7f9",
-        scrollY: -window.scrollY, // ★これが重要！スクロールのズレを補正します
-        windowHeight: target.scrollHeight, // ★縦の長さを中身に合わせます
+        // スマホのスクロールとキーボードの影響を完全に排除する設定
+        scrollY: -window.scrollY,
         onclone: (clonedDoc) => {
-            // コピーした中身の表示を整えるおまじない
-            clonedDoc.querySelector("#capture-area").style.height = "auto";
+            // ★重要：撮影用のコピー(clonedDoc)内で、全ての入力欄を「数値」に置き換える
+            const inputs = clonedDoc.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                const val = input.value;
+                const parent = input.parentElement;
+                const span = clonedDoc.createElement('span');
+                
+                // 入力欄の見た目をテキストとして再現
+                span.innerText = val ? (input.type === 'number' ? Number(val).toLocaleString() : val) : "---";
+                span.style.display = "inline-block";
+                span.style.width = "100%";
+                span.style.padding = "10px";
+                span.style.background = "#eee";
+                span.style.borderRadius = "5px";
+                span.style.fontSize = "1rem";
+                span.style.fontWeight = "bold";
+                span.style.boxSizing = "border-box";
+                
+                input.style.display = 'none'; // 元の入力枠を消す
+                parent.appendChild(span);     // 代わりに数値テキストを入れる
+            });
         }
     })
     .then(canvas => {
@@ -163,7 +181,7 @@ function savePageImage() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = fileName;
+            a.download = `${jobName}_${dateStr}.png`;
             document.body.appendChild(a);
             a.click();
             setTimeout(() => { 
@@ -172,9 +190,12 @@ function savePageImage() {
                 btn.innerText = oldText; 
             }, 100);
         }, 'image/png');
+    }).catch(err => {
+        console.error(err);
+        btn.innerText = oldText;
+        alert("画像作成に失敗しました。Safari/Chromeで開き直してください。");
     });
 }
-
 function shareLine() {
     const job = document.getElementById("jobName").value || "無題の案件";
     const itSub = document.getElementById("G5").innerText;
@@ -206,5 +227,6 @@ function runCalcBottom() {
 </script>
 </body>
 </html>
+
 
 
