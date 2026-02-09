@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>補助金シミュレーター【最終版】</title>
+    <title>補助金シミュレーター【高精度・完結版】</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <style>
         :root { --primary: #005bac; --bg: #f4f7f9; --green: #28a745; --red: #d9534f; --gray: #888; --line: #06c755; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); padding: 10px; margin: 0; color: #333; }
         
-        /* 操作パネル */
+        /* 操作用ナビゲーション */
         .action-nav { position: sticky; top: 0; z-index: 1000; background: var(--bg); padding: 10px 0; display: flex; gap: 6px; justify-content: center; max-width: 550px; margin: 0 auto; }
         .btn { flex: 1; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: bold; padding: 12px 2px; border: none; color: #fff; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .reset-btn { background-color: var(--red); }
@@ -17,35 +17,38 @@
         .line-btn { background-color: var(--line); }
         .btn:active { opacity: 0.7; transform: translateY(1px); }
 
-        #capture-area { max-width: 550px; margin: 0 auto; padding-bottom: 20px; }
+        /* キャプチャエリア */
+        #capture-area { max-width: 550px; margin: 0 auto; padding-bottom: 20px; background: var(--bg); }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; box-sizing: border-box; }
         h2 { font-size: 1.1rem; color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 8px; margin-top: 0; margin-bottom: 15px; }
         
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.85rem; }
-        
-        /* 文字切れ対策済みの入力枠設定 */
+        /* 入力フォームのスタイル（画面・画像共通） */
+        .form-label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; }
         input, select, textarea { 
             width: 100%; 
-            padding: 10px 12px; 
-            line-height: 1.4; 
+            height: 45px; 
+            padding: 0 12px; 
             border: 2px solid #ddd; 
             border-radius: 8px; 
             font-size: 1rem; 
             box-sizing: border-box; 
+            display: flex;
+            align-items: center;
+            background: #fff;
             outline: none;
-            display: block;
+            -webkit-appearance: none;
         }
+        textarea { height: 65px; padding: 10px 12px; line-height: 1.4; resize: none; }
         input:focus { border-color: var(--primary); background: #f0f7ff; }
         
+        /* 各セクションの装飾 */
         .section-frame { border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .result-frame { border: 2px solid #444; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
         .profit-frame { border: 2px solid #ddd; border-radius: 10px; padding: 15px; background: #fffde6; }
         
-        .tax-label { font-size: 0.75rem; color: var(--gray); margin-top: 4px; text-align: right; }
+        .tax-label { font-size: 0.75rem; color: var(--gray); margin-top: 4px; text-align: right; margin-bottom: 10px; }
         .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; }
         .val-text { font-size: 1.1rem; }
-        
         .footer-note { font-size: 0.7rem; color: #888; text-align: center; line-height: 1.4; margin-top: 10px; }
     </style>
 </head>
@@ -60,65 +63,67 @@
 <div id="capture-area">
     <div class="container">
         <h2>案件管理情報</h2>
-        <div class="form-group">
-            <label>案件名（保存ファイル名になります）</label>
+        <div style="margin-bottom:12px;">
+            <label class="form-label">案件名（保存ファイル名）</label>
             <input id="jobName" type="text" placeholder="例：株式会社〇〇様" oninput="saveAndCalc()">
         </div>
-        <div class="form-group">
-            <label>商談メモ</label>
-            <textarea id="memo" rows="2" placeholder="備考・条件など" oninput="saveAndCalc()"></textarea>
+        <div>
+            <label class="form-label">商談メモ</label>
+            <textarea id="memo" placeholder="備考、条件など" oninput="saveAndCalc()"></textarea>
         </div>
     </div>
 
     <div class="container">
-        <h2>IT導入補助金シミュレーター</h2>
+        <h2>IT導入補助金</h2>
         <div class="section-frame">
-            <label>① ソフトウェア販売金額（税別）</label>
+            <label class="form-label">① ソフトウェア販売額（税別）</label>
             <input id="C4" type="number" pattern="\d*" oninput="saveAndCalc()">
             <div class="tax-label">税込：<span id="D4">0</span> 円</div>
-            <label>② POSハード販売金額（税別）</label>
+            
+            <label class="form-label">② POSハード販売額（税別）</label>
             <input id="C5" type="number" pattern="\d*" oninput="saveAndCalc()">
             <div class="tax-label">税込：<span id="D5">0</span> 円</div>
-            <label>③ PC販売金額（税別）</label>
+            
+            <label class="form-label">③ PC販売額（税別）</label>
             <input id="C6" type="number" pattern="\d*" oninput="saveAndCalc()">
             <div class="tax-label">税込：<span id="D6">0</span> 円</div>
         </div>
+
         <div class="result-frame">
-            <label>⑥ ALL商材原価費用（税別）</label>
+            <label class="form-label">⑥ ALL商材原価費用（税別）</label>
             <input id="C30" type="number" pattern="\d*" oninput="saveAndCalc()">
             <div class="tax-label">税込原価：<span id="D30">0</span> 円</div>
-            <div class="res-row"><span>④ 目安補助金税込額</span><span class="val-text" id="G5" style="color:var(--primary)">0 円</span></div>
-            <div class="res-row" style="color:var(--red)"><span>⑤ 実質負担（手出し額）</span><span class="val-text" id="G6">0 円</span></div>
+            
+            <div class="res-row"><span>④ 目安補助金額</span><span class="val-text" id="G5" style="color:var(--primary)">0 円</span></div>
+            <div class="res-row" style="color:var(--red)"><span>⑤ 実質負担（手出し）</span><span class="val-text" id="G6">0 円</span></div>
         </div>
+
         <div class="profit-frame">
             <div class="res-row" style="color:var(--green)"><span>⑦ 販売店様払出税込額</span><span class="val-text" id="G30">0 円</span></div>
             <div class="res-row" style="color:var(--red)"><span>⑧ 概算粗利益（税込）</span><span class="val-text" id="G31" style="font-size:1.3rem;">0 円</span></div>
-            <div style="font-size:0.6rem; color:#888; text-align:right;">※諸経費・人件費等を差し引く前の利益目安です</div>
+            <div style="font-size:0.6rem; color:#888; text-align:right;">※諸経費等を引く前の利益目安です</div>
         </div>
     </div>
 
     <div class="container">
-        <h2>持続化補助金 精密計算</h2>
-        <select id="rateSelect" onchange="saveAndCalc()" style="margin-bottom:10px;">
+        <h2>持続化補助金</h2>
+        <select id="rateSelect" onchange="saveAndCalc()" style="margin-bottom:15px;">
             <option value="0.6666666667">通常申請 (2/3)</option>
-            <option value="0.75">赤字・賃金引上げ加点等 (3/4)</option>
+            <option value="0.75">赤字・賃上げ等 (3/4)</option>
         </select>
+        
         <div class="section-frame">
-            <label>① ウェブサイト関連費</label>
+            <label class="form-label">ウェブサイト関連費</label>
             <input type="number" id="webExp" pattern="\d*" oninput="saveAndCalc()">
-            <div class="tax-label" style="text-align:left;">申請目安: <strong id="res3" style="color:var(--primary)">0</strong> 円</div>
-            <label>② ウェブサイト関連費以外</label>
+            <label class="form-label" style="margin-top:12px;">ウェブ以外（設備・広報等）</label>
             <input type="number" id="otherExp" pattern="\d*" oninput="saveAndCalc()">
-            <div class="tax-label" style="text-align:left;">申請目安: <strong id="res4" style="color:var(--primary)">0</strong> 円</div>
         </div>
+
         <div class="result-frame">
-            <div class="res-row" style="color:var(--primary)"><span>⑥ 補助金申請合計</span><span class="val-text" id="res6">0 円</span></div>
+            <div class="res-row" style="color:var(--primary)"><span>⑥ 補助金交付申請額</span><span class="val-text" id="res6">0 円</span></div>
             <div class="res-row" style="color:var(--red)"><span>⑦ 手出し額（概算）</span><span class="val-text" id="res7">0 円</span></div>
         </div>
-        <div class="footer-note">
-            ※ITツール検索は「受発注」等のキーワードで公式一覧を確認してください。<br>
-            ※画像が切れる場合はキーボードを閉じてから保存してください。
-        </div>
+        <div class="footer-note">※ITツール検索は「受発注」等で公式一覧を確認してください</div>
     </div>
 </div>
 
@@ -126,7 +131,7 @@
 const fmt = (n) => Math.round(n).toLocaleString();
 const fields = ["jobName", "memo", "C4", "C5", "C6", "C30", "webExp", "otherExp", "rateSelect"];
 
-// 自動計算と保存
+// 入力データの自動保存と計算
 function saveAndCalc() {
     fields.forEach(id => { localStorage.setItem(id, document.getElementById(id).value); });
     calcTop(); runCalcBottom();
@@ -141,7 +146,7 @@ window.onload = function() {
 };
 
 function resetAll() {
-    if(!confirm("入力データをすべて消去しますか？")) return;
+    if(!confirm("入力をすべて消去しますか？")) return;
     fields.forEach(id => {
         localStorage.removeItem(id);
         document.getElementById(id).value = (id === "rateSelect") ? "0.6666666667" : "";
@@ -149,22 +154,16 @@ function resetAll() {
     saveAndCalc();
 }
 
-// 画像保存（文字切れ対策版）
+// 【改良版】画像保存処理：文字切れとズレを徹底修正
 function savePageImage() {
     if(typeof html2canvas === 'undefined') {
-        alert("準備中です。数秒待ってからやり直してください。");
+        alert("画像エンジンを読み込み中です。数秒待って再試行してください。");
         return;
     }
     const btn = document.querySelector('.save-btn');
-    const oldText = btn.innerText;
     btn.innerText = "作成中...";
-
-    const jobName = document.getElementById("jobName").value || "補助金シミュレーション";
-    const now = new Date();
-    const dateStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
-    const fileName = `${jobName}_${dateStr}.png`;
-
     const target = document.querySelector("#capture-area");
+    const jobName = document.getElementById("jobName").value || "補助金シミュレーション";
 
     html2canvas(target, {
         scale: 2,
@@ -172,63 +171,64 @@ function savePageImage() {
         backgroundColor: "#f4f7f9",
         scrollY: -window.scrollY,
         onclone: (clonedDoc) => {
-            // 文字が枠の下に沈まないよう、撮影用コピー内でテキスト要素に置換
+            // 入力欄を撮影用に「ズレないテキストボックス」へ置換
             const inputs = clonedDoc.querySelectorAll('input, textarea, select');
             inputs.forEach(input => {
                 const val = input.value;
                 const parent = input.parentElement;
+                const div = clonedDoc.createElement('div');
                 
-                const wrapper = clonedDoc.createElement('div');
-                wrapper.style.cssText = `
-                    width: 100%;
-                    min-height: 40px;
+                // 元のスタイルを継承しつつ、文字位置を中央に固定
+                const style = window.getComputedStyle(input);
+                div.style.cssText = `
+                    width: ${input.offsetWidth}px;
+                    height: ${input.offsetHeight}px;
+                    padding: ${style.padding};
+                    border: ${style.border};
+                    border-radius: ${style.borderRadius};
+                    font-size: ${style.fontSize};
+                    font-weight: bold;
                     background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
                     display: flex;
                     align-items: center;
-                    padding: 8px 12px;
                     box-sizing: border-box;
-                    margin-bottom: 5px;
+                    color: #333;
                 `;
+                div.innerText = val ? (input.type === 'number' && !isNaN(val) ? Number(val).toLocaleString() : val) : " ";
                 
-                const span = clonedDoc.createElement('span');
-                span.innerText = val ? (input.type === 'number' ? Number(val).toLocaleString() : val) : " ";
-                span.style.cssText = "font-size: 1rem; color: #333; line-height: 1.2; font-weight: bold;";
-                
-                wrapper.appendChild(span);
                 input.style.display = 'none';
-                parent.appendChild(wrapper);
+                parent.appendChild(div);
             });
         }
-    })
-    .then(canvas => {
+    }).then(canvas => {
         canvas.toBlob(blob => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const now = new Date();
+            const timeStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
             a.href = url;
-            a.download = fileName;
+            a.download = `${jobName}_${timeStr}.png`;
             document.body.appendChild(a);
             a.click();
-            setTimeout(() => { 
-                document.body.removeChild(a); 
-                window.URL.revokeObjectURL(url); 
-                btn.innerText = oldText; 
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                btn.innerText = "📸 画像保存";
             }, 100);
         }, 'image/png');
     });
 }
 
 function shareLine() {
-    const job = document.getElementById("jobName").value || "無題の案件";
-    const itSub = document.getElementById("G5").innerText;
-    const text = `【補助金計算：${job}】\nIT導入補助目安：${itSub}\n※詳細は画像を確認してください。`;
+    const job = document.getElementById("jobName").value || "案件";
+    const text = `【補助金計算結果：${job}】\n※詳細は保存画像を確認してください。`;
     navigator.clipboard.writeText(text).then(() => {
         window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`, '_blank');
-        alert("テキストをコピーしました。");
+        alert("コピーしました。LINE等に貼り付けてください。");
     });
 }
 
+// IT導入補助金 計算ロジック
 function calcTop(){
     const C4=Number(document.getElementById("C4").value)||0, C5=Number(document.getElementById("C5").value)||0, C6=Number(document.getElementById("C6").value)||0, C30=Number(document.getElementById("C30").value)||0;
     const D4=C4*1.1, D5=C5*1.1, D6=C6*1.1, D30=C30*1.1;
@@ -240,11 +240,12 @@ function calcTop(){
     document.getElementById("G5").textContent=fmt(sub)+" 円"; document.getElementById("G6").textContent=fmt(diff)+" 円"; document.getElementById("G30").textContent=fmt(payout)+" 円"; document.getElementById("G31").textContent=fmt(profit)+" 円";
 }
 
+// 持続化補助金 計算ロジック
 function runCalcBottom() {
     const web = parseFloat(document.getElementById('webExp').value) || 0, other = parseFloat(document.getElementById('otherExp').value) || 0, rate = parseFloat(document.getElementById('rateSelect').value);
     const r4 = Math.floor(other * rate), v3_1 = Math.min(other * 0.25, 500000), r3 = Math.floor(Math.min(v3_1, web * rate, r4 / 3));
     const r5 = web + other, r6 = Math.min(r3 + r4, 2000000), r7 = r5 - r6;
-    document.getElementById('res3').innerText = fmt(r3); document.getElementById('res4').innerText = fmt(r4); document.getElementById('res6').innerText = fmt(r6) + " 円"; document.getElementById('res7').innerText = fmt(r7) + " 円";
+    document.getElementById('res6').innerText = fmt(r6) + " 円"; document.getElementById('res7').innerText = fmt(r7) + " 円";
 }
 </script>
 </body>
