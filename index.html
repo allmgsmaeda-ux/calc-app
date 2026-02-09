@@ -144,7 +144,20 @@ function savePageImage() {
     const dateStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
     const fileName = `${jobName}_${dateStr}.png`;
 
-    html2canvas(document.querySelector("#capture-area"), { scale: 2, useCORS: true, backgroundColor: "#f4f7f9" })
+    // 修正ポイント：スクロール位置に関係なく全体を撮る設定
+    const target = document.querySelector("#capture-area");
+    
+    html2canvas(target, {
+        scale: 2,           // 画質を2倍に（綺麗になります）
+        useCORS: true,      // 外部画像があってもOKに
+        backgroundColor: "#f4f7f9",
+        scrollY: -window.scrollY, // ★これが重要！スクロールのズレを補正します
+        windowHeight: target.scrollHeight, // ★縦の長さを中身に合わせます
+        onclone: (clonedDoc) => {
+            // コピーした中身の表示を整えるおまじない
+            clonedDoc.querySelector("#capture-area").style.height = "auto";
+        }
+    })
     .then(canvas => {
         canvas.toBlob(blob => {
             const url = URL.createObjectURL(blob);
@@ -153,7 +166,11 @@ function savePageImage() {
             a.download = fileName;
             document.body.appendChild(a);
             a.click();
-            setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); btn.innerText = oldText; }, 100);
+            setTimeout(() => { 
+                document.body.removeChild(a); 
+                window.URL.revokeObjectURL(url); 
+                btn.innerText = oldText; 
+            }, 100);
         }, 'image/png');
     });
 }
@@ -189,4 +206,5 @@ function runCalcBottom() {
 </script>
 </body>
 </html>
+
 
